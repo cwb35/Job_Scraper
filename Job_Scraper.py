@@ -12,7 +12,21 @@ import sys
 import argparse
 import re
 
-def scrape_jobs(job_title, terms, location, radius, num_jobs):
+def scrape_jobs(job_title, location, radius, num_jobs):
+    """
+    Scrapes indeed.com for job postings and returns DataFrame of ones it found
+    
+    parameters:
+    -----------
+        job_title - Title of job searching for
+        location - Location want to find jobs for
+        radius - How far from location you want job postings for
+        num_jobs - Number of job posting want to scrape
+        
+    returns:
+    --------
+        DataFrame with all information for job postings 
+    """
     
     url = "https://www.indeed.com/jobs?"
     search = Template("as_and=$job&radius=$r&l=$loc&fromage=any&limit=$num&psf=advsrch")
@@ -42,6 +56,10 @@ def scrape_jobs(job_title, terms, location, radius, num_jobs):
                                            'Date_Posted', 'Link'])
     
 def extract_text(list_links, v=False):
+    """
+    Extracts text from all of the links in list_links and returns a list of the
+    text found at each link.
+    """
     
     job_text = []
     replace_punc = re.compile(r"[,.;@#?!&$]+")
@@ -115,7 +133,6 @@ def main():
     parser.add_argument('num_jobs', metavar='N', type=int)
     parser.add_argument('-terms', metavar='T', type=str, nargs='+')
     parser.add_argument('-output', metavar='out', type=str)
-    parser.add_argument('-keeplines', metavar='keep', type=bool)
     
     arg_dict = vars(parser.parse_args(sys.argv))
     
@@ -126,21 +143,15 @@ def main():
         output = "_".join(string.split())+"_Job_Report.csv"
         
     if arg_dict['terms']!=None:
-        terms = arg_dict['terms']
+        terms = [" "+term+" " for term in arg_dict['terms']]
     else:
         terms = None
-        
-    if arg_dict['keeplines']!=None:
-        keeplines = True
-    else:
-        keeplines = False
         
     params = {
         'job_title':arg_dict['job_title'].replace(' ', '+'),
         'location':arg_dict['location'].replace(' ', '+'),
         'radius':arg_dict['radius'],
-        'num_jobs':arg_dict['num_jobs'],
-        'terms':terms    
+        'num_jobs':arg_dict['num_jobs']
     }
     df = scrape_jobs(**params)
     
